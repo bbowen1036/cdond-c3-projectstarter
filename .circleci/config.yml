@@ -262,10 +262,6 @@ jobs:
           fingerprints: ["e5:2e:f6:05:40:6a:8a:83:07:f2:cf:0c:0b:be:c6:d3"]
       - attach_workspace:
           at: ~/
-      # - run:
-      #     name: Install dependencies
-      #     command: |
-      #       apk add --update ansible curl nodejs npm tar gzip
       - run:
           name: AWS CLI
           command: |

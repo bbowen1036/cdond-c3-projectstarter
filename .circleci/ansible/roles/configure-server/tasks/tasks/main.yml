@@ -22,17 +22,30 @@
     state: latest
     update_cache: yes
 
-- name: "install n"
-  become: yes
-  npm:
-    name: n
-    global: yes
-    production: yes
+# - name: "install n"
+#   become: yes
+#   npm:
+#     name: n
+#     global: yes
+#     production: yes
 
-- name: "install nodejs 13.8.0"
-  become: yes
-  shell: n 13.8.0
+# - name: "install nodejs 13.8.0"
+#   become: yes
+#   shell: n 13.8.0
 
+# - name: "install pm2"
+#   become: yes
+#   npm:
+#     name: pm2
+#     global: yes
+#     production: yes
+#     state: present
+- name: "Add nodejs 13.x ppa for apt repo, and install nodejs"
+  become: yes
+  shell: |
+    curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    
 - name: "install pm2"
   become: yes
   npm:
