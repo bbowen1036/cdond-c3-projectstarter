@@ -209,7 +209,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:14.18.1
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - attach_workspace:
@@ -231,7 +231,7 @@ jobs:
 
           command: |
             cd backend
-            npm install
+            # npm install
             npm run migrations:revert
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
