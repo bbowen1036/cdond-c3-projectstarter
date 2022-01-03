@@ -200,10 +200,11 @@ jobs:
           keys: [ backend-build ]
       - run:
           name: Run migrations
+          no_output_timeout: 10m
           command: |
-            # fix sourced from student questions
             cd backend
             npm install
+            npm run build
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
