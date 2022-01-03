@@ -183,6 +183,7 @@ jobs:
             apk add --update rsync
             apk add --update curl
             apk add --update nodejs npm
+            pip install awscli
       - run:
           name: Configure server
           command: |
@@ -193,25 +194,38 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:14.18.1
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+            
       - restore_cache:
           keys: [ backend-build ]
       - run:
+          name: install awscli
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get -qq install awscli
+            sudo apt-get -y -qq install python3
+            sudo npm install pm2 -g
+      - run:
           name: Run migrations
           command: |
-            # fix sourced from student questions
             cd backend
             npm install
+            npm audit fix
+            npm run build            
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
           name: Send migration results to memstash
           command: |
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            cd backend          
+            if grep -q "has been executed successfully." migrations_dump.txt
             then
+              echo "DB migration was successful"
               curl -H "Content-Type: text/plain" -H "token: a907a793-000e-4db2-8140-a7c78b5c7d46" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            else
+              echo "DB migration has failed"
             fi
 
 
@@ -263,37 +277,65 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: AWS CLI
+          name: Install dependencies
           command: |
-            apk add --update ansible
-            apk add --update nodejs npm
-            apk add --update tar
-            apk add --update gzip
-            apk add --update curl
-            # apk add --update openssh-client
+            apk add --update tar gzip ansible nodejs npm curl zip
+            pip install awscli
+            npm install
 
-            apk add --no-cache \
-            python3 \
-            py3-pip \
-            && pip3 install --upgrade pip \
-            && pip3 install --no-cache-dir \
-            awscli \
-            && rm -rf /var/cache/apk/*
-            aws --version
       - run:
-          name: Deploy backend
+          name: create .env files
           command: |
-            cd backend
-            npm i
-            npm run build
-            cp package* ./dist
-            cd ..
-            tar -C backend -czvf artifact.tar.gz .
-            cd .circleci/ansible
-            echo "Contents  of the inventory.txt file is -------"
-            cat inventory.txt
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook -i inventory.txt deploy-backend.yml
+            echo NODE_ENV=production > "backend/.env"
+            echo VERSION=1 >> "backend/.env"
+            echo ENVIROMENT=development >> "backend/.env"
+            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
+            echo TYPEORM_ENTITIES=./src/modules/**/*.entity.ts >> "backend/.env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+
+      - run:
+          name: install node modules
+          command: |
+            cd /root/project/backend
+            npm install
+      # - run:
+      #     name: AWS CLI
+      #     command: |
+      #       apk add --update ansible
+      #       apk add --update nodejs npm
+      #       apk add --update tar
+      #       apk add --update gzip
+      #       apk add --update curl
+      #       # apk add --update openssh-client
+
+      #       apk add --no-cache \
+      #       python3 \
+      #       py3-pip \
+      #       && pip3 install --upgrade pip \
+      #       && pip3 install --no-cache-dir \
+      #       awscli \
+      #       && rm -rf /var/cache/apk/*
+      #       aws --version
+      # - run:
+      #     name: Deploy backend
+      #     command: |
+      #       cd backend
+      #       npm i
+      #       npm run build
+      #       cp package* ./dist
+      #       cd ..
+      #       tar -C backend -czvf artifact.tar.gz .
+      #       cd .circleci/ansible
+      #       echo "Contents  of the inventory.txt file is -------"
+      #       cat inventory.txt
+      #       export ANSIBLE_HOST_KEY_CHECKING=False
+      #       ansible-playbook -i inventory.txt deploy-backend.yml
 
       # - run:
       #     name: Configure server
