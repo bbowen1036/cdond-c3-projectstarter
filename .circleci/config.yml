@@ -444,7 +444,7 @@ jobs:
             echo Current Worflow ID: "${CIRCLE_WORKFLOW_ID:0:7}"
 
       - revert-migrations
-      - destroy-environment
+      - destroy-environment 
 
 # cleanup:
 #     docker:
