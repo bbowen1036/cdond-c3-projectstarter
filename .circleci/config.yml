@@ -405,7 +405,7 @@ jobs:
             if curl -s ${URL} | grep "Welcome"
             then
               echo "Frontend Smoke Test Success"
-               exit 1
+               exit 0
              else
               echo "Frontend Smoke Test Failed"
                exit 1
@@ -483,7 +483,7 @@ workflows:
           requires: [run-migrations, deploy-frontend]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudfront-update]
