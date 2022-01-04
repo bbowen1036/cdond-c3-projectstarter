@@ -332,6 +332,7 @@ jobs:
 
       - run:
           name: Deploy backend
+          no_output_timeout: 30m
           command: |
 
             echo ENVIRONMENT=production >> "backend/.env"
