@@ -69,7 +69,7 @@
 
 - name: "install npm packages"
   become: true
-  command: npm install --force
+  command: npm install
   args:
     chdir: /root/backend
 
