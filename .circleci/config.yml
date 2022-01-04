@@ -313,11 +313,11 @@ jobs:
       - run:
           name: AWS CLI
           command: |
-            apk add --update ansible
-            apk add --update nodejs npm
-            apk add --update tar
-            apk add --update gzip
-            apk add --update curl
+            # apk add --update ansible
+            # apk add --update nodejs npm
+            # apk add --update tar
+            # apk add --update gzip
+            # apk add --update curl
             # apk add --update openssh-client
 
             # apk add --no-cache \
@@ -328,6 +328,8 @@ jobs:
             # awscli \
             # && rm -rf /var/cache/apk/*
             # aws --version
+
+            apk add --update ansible openssh-client tar gzip curl nodejs npm
             pip install awscli
 
       - run:
