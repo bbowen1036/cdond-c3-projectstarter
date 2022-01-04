@@ -253,14 +253,15 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
               echo "DB migration was successful"
-              curl -H "Content-Type: text/plain" -H "token: a907a793-000e-4db2-8140-a7c78b5c7d46" \
-                --request PUT \
-                --data "1" \
-                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              # curl -H "Content-Type: text/plain" -H "token: a907a793-000e-4db2-8140-a7c78b5c7d46" \
+              #   --request PUT \
+              #   --data "1" \
+              #   https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             else
               echo "DB migration has failed"
             fi
-
+      - destroy-environment
+      - revert-migrations
 
   deploy-frontend:
     docker:
