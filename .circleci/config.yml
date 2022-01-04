@@ -13,24 +13,30 @@ commands:
             aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
 
-#   revert-migrations:
-#     description: Revert the last migration if successfully run in the current workflow.
-#     parameters:
-#       # Add parameter here     
-#     steps:
-#       - run:
-#           name: Revert migrations
-#           # Add when this will run
-#           command: |
-#             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-#             SUCCESS = 1
-#             if(( $SUCCESS==1 )); 
-#             then
-#             #  cd ~/project/backend
-#             #  npm install
-#             #  Add revert code here. You can find this in the Getting Started section.
-#               exit 1
-#             fi
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    steps:
+
+      - restore_cache:
+          key: backend-build
+
+      - run:
+          name: Revert migrations
+          when: on_fail
+
+          command: |
+            echo "Destroying environment: ${CIRCLE_WORKFLOW_ID:0:7}"
+
+            SUCCESS = 1
+            if(( $SUCCESS==1 )); 
+            then
+              cd backend
+              npm install
+              npm run migrations:revert #revert the successful migration
+              echo "Migration reverted"
+            else
+              echo "Migration revert was unsuccessful" 
+            fi
             
 jobs:
   build-frontend:
@@ -233,7 +239,6 @@ jobs:
           command: |
             cd backend
             npm install
-            # npm run migrations:revert
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
@@ -446,7 +451,8 @@ jobs:
                exit 1
              fi
 
-      # - destroy-environment
+      - destroy-environment
+      - revert-migrations 
   
 
 #   cloudfront-update:
