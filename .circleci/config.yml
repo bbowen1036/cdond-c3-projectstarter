@@ -242,7 +242,10 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
               echo "DB migration was successful"
-              curl -H "Content-Type: text/plain" -H "token: a907a793-000e-4db2-8140-a7c78b5c7d46" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              curl -H "Content-Type: text/plain" -H "token: a907a793-000e-4db2-8140-a7c78b5c7d46" \
+                --request PUT \
+                --data "1" \
+                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             else
               echo "DB migration has failed"
             fi
@@ -270,16 +273,27 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project,Values=udapeople" \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
+
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "API_URL = ${API_URL}"
-            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+
+            echo ENVIRONMENT=production > "frontend/.env"
+            echo NODE_ENV=production >> "frontend/.env"
+            echo API_URL=$API_URL >> "frontend/.env"
+           
+            # echo "${API_URL}"
+            # echo "API_URL = ${API_URL}"
+            # echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
           name: Deploy frontend objects
           command: |
+            echo ENVIRONMENT=production >> frontend/.env
+            echo NODE_ENV=production >> frontend/.env
+
             cd frontend
+            npm audit fix --audit-level=critical 
             npm install
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
@@ -295,6 +309,7 @@ jobs:
           fingerprints: ["e5:2e:f6:05:40:6a:8a:83:07:f2:cf:0c:0b:be:c6:d3"]
       - attach_workspace:
           at: ~/
+          
       - run:
           name: AWS CLI
           command: |
@@ -305,21 +320,38 @@ jobs:
             apk add --update curl
             # apk add --update openssh-client
 
-            apk add --no-cache \
-            python3 \
-            py3-pip \
-            && pip3 install --upgrade pip \
-            && pip3 install --no-cache-dir \
-            awscli \
-            && rm -rf /var/cache/apk/*
-            aws --version
+            # apk add --no-cache \
+            # python3 \
+            # py3-pip \
+            # && pip3 install --upgrade pip \
+            # && pip3 install --no-cache-dir \
+            # awscli \
+            # && rm -rf /var/cache/apk/*
+            # aws --version
+            pip install awscli
+
       - run:
           name: Deploy backend
           command: |
+
+            echo ENVIRONMENT=production >> "backend/.env"
+            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+            cat backend/.env
+
+
+
             cd backend
             npm i
             npm run build
-            cp package* ./dist
+
             cd ..
             tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
@@ -371,7 +403,7 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project,Values=udapeople" \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
             # backendURL="$(curl -H "token: a907a793-000e-4db2-8140-a7c78b5c7d46" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})"
             export API_URL="http://${BACKEND_IP}:3030"
