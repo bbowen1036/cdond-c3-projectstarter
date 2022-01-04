@@ -27,7 +27,7 @@ commands:
           command: |
             echo "Destroying environment: ${CIRCLE_WORKFLOW_ID:0:7}"
 
-            SUCCESS = 1
+            export SUCCESS = 1
             if(( $SUCCESS==1 )); 
             then
               cd backend
@@ -318,23 +318,6 @@ jobs:
       - run:
           name: AWS CLI
           command: |
-            # apk add --update ansible
-            # apk add --update nodejs npm
-            # apk add --update tar
-            # apk add --update gzip
-            # apk add --update curl
-            # apk add --update openssh-client
-
-            # apk add --no-cache \
-            # python3 \
-            # py3-pip \
-            # && pip3 install --upgrade pip \
-            # && pip3 install --no-cache-dir \
-            # awscli \
-            # && rm -rf /var/cache/apk/*
-            # aws --version
-
-
             apk add --update ansible openssh-client tar gzip curl nodejs npm
             pip install awscli
 
@@ -368,32 +351,6 @@ jobs:
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i inventory.txt deploy-backend.yml
-
-            # cd backend
-            # npm i
-            # npm run build
-
-            # cd ..
-            # tar -C backend -czvf artifact.tar.gz .
-            # cd .circleci/ansible
-            # echo "Contents  of the inventory.txt file is -------"
-            # cat inventory.txt
-            # export ANSIBLE_HOST_KEY_CHECKING=False
-            # ansible-playbook -i inventory.txt deploy-backend.yml
-
-      # - run:
-      #     name: Configure server
-      #     command: |
-      #         echo ENVIROMENT=production > "backend/dist/.env"
-      #         echo TYPEORM_CONNECTION=postgres >> "backend/dist/.env"
-      #         echo TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js} >> "backend/dist/.env"
-      #         echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/dist/.env"
-      #         echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/dist/.env"
-      #         echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/dist/.env"
-      #         echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/dist/.env"
-      #         echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/dist/.env"
-      #         echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/dist/.env"
-      #         echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/dist/.env"
 
       - destroy-environment
       # Here's where you will add some code to rollback on failure  
