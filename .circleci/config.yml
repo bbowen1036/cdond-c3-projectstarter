@@ -475,7 +475,7 @@ jobs:
 
 
               # your code here
-              export OldWorkflowID="the id here"
+              # export OldWorkflowID="the id here"
               # export STACKS=[] #put the list of stacks here
 
               if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
@@ -484,8 +484,8 @@ jobs:
                 aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
                 aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
                 aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-              fi
-            
+              fi         
+        - destroy-environment
 
 workflows:
   default:
